@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h3> Productos </h3> <!-- Título menos grande que el anterior -->
+<ul> <!-- Lista no ordenada para mostrar todos los productos -->
+  {% for producto in object_list %}
+    <li>
+      <a href="{% url 'product-detail' producto.pk %}">{{ producto.nombre }}</a> <!-- Dentro de href se coloca como será tu link  -->
+                                                                                <!-- Dentro de los <a> colocas el nombre del producto -->
+    </li>
+  {% endfor  %}
+</ul>
+{% endblock %}
