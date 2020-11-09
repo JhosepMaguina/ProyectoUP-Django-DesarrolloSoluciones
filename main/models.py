@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import User
 
 # Create your models here.
-
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
@@ -56,7 +55,6 @@ class Colaborador(models.Model):
 #-------------------------------------------------------------------------------
 
 
-
 # Create your models here.
 class Proveedor(models.Model):
     ruc = models.CharField(max_length=11)
@@ -104,7 +102,7 @@ class Producto(models.Model):
         return self.nombre
 
     # Métodos
-    def precio_final(self):
+    def get_precio_final(self):
         return self.precio * (1 - self.descuento)
 
     def sku(self):
@@ -112,3 +110,57 @@ class Producto(models.Model):
         codigo_producto = str(self.id).zfill(6)
 
         return f'{codigo_categoria}-{codigo_producto}'
+
+#Para que el producto tenga imagen.
+class ProductoImage(models.Model):
+    product = models.ForeignKey('Producto', on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to="products", null=True, blank=True)
+
+
+
+class Pedido(models.Model):
+    # Relaciones
+    cliente = models.ForeignKey('Cliente', on_delete=models.CASCADE) #Cuando se elimine un cliente se borrarán todos sus pedidos (on_delete=models.CASCADE).
+    repartidor = models.ForeignKey('Colaborador', on_delete=models.SET_NULL, null=True) #Si se elimina el colaborador no se eliminará el pedido, sino se pondrá como nulo (on_delete=models.SET_NULL, null=True).
+    ubicacion = models.ForeignKey('Localizacion', on_delete=models.SET_NULL, null=True) #Si se elimina una localización, los pedidos tendrán el valor nulo (on_delete=models.SET_NULL, null=True).
+
+    # Atributos
+    fecha_creacion = models.DateTimeField(auto_now=True) #Cuando se cree una instancia de pedido automáticamente colocará la hora que fue creada (auto_now=True).
+    fecha_entrega = models.DateTimeField(blank=True, null=True) #Cuando el atributo no tenga valor estará vacío (blank=True, null=True).
+    estado = models.CharField(max_length=3)
+    direccion_entrega = models.CharField(max_length=100, blank=True, null=True) #El atributo puede estar vacio sin que haya algún problema (blank=True, null=True). Porque en un inicio no se le pedirá al usuario su dirección.
+    tarifa = models.FloatField(blank=True, null=True) #Un número con decimales (FloatField) que puede estar vacío (blank=True, null=True).
+
+    #Para que aparezcan los nombres/etiquetas de las categorias.
+    def __str__(self):
+        return f'{self.cliente} - {self.fecha_creacion} - {self.estado}'
+
+    #Método personalizado
+    #Para obtener todos los detalles de pedido relacionados a un pedido en específico.
+    #Utiliza el método de "detalle de pedido" para cada línea (for detalle) en los detalles de pedido (in detalles) se sumará el subtotal (detalle.get_subtotal()) para obtener el total (total +=).
+    #Por último se le suma la tarifa (total += self.tarifa) para que finalmente devuelva el total (return total).
+    def get_total(self):
+        detalles = self.detallepedido_set.all()
+        total = 0
+        for detalle in detalles:
+            total += detalle.get_subtotal()
+        total += self.tarifa
+        return total
+
+
+class DetallePedido(models.Model):
+    # Relaciones
+    producto = models.ForeignKey('Producto', on_delete=models.CASCADE) #Si se elimina el producto, se elimina el detablle de pedido (on_delete=models.CASCADE).
+    pedido = models.ForeignKey('Pedido', on_delete=models.CASCADE) #Si se elimina el pedido se eliminan sus detalles de pedido (on_delete=models.CASCADE).
+
+    # Atributos
+    cantidad = models.IntegerField(blank=True, null=True) #Para determinar la cantidad que el cliente está pidiendo de este producto.
+
+    #Para que aparezcan los nombres/etiquetas de las categorias
+    def __str__(self):
+        return f'{self.pedido.id} - {self.cantidad} x {self.producto.nombre}'
+
+    #Método personalizado
+    #El get_subtotal devuelve el método get_precio_final de Producto (considerando todo tipo de descuentos) multiplicado por la cantidad.
+    def get_subtotal(self):
+        return self.producto.get_precio_final() * self.cantidad
