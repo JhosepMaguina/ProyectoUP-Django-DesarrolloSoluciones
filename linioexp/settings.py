@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'storages',
     'main.apps.MainConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -120,6 +121,11 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+import os
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+
 LOGOUT_REDIRECT_URL = '/'
 
 #Para utilizar la funcionalidad de recuperación de contraseña Django debe ser capaz de mandar correos.
@@ -127,3 +133,11 @@ EMAIL_HOST = 'smtp.mailtrap.io'
 EMAIL_HOST_USER = '1534de79dc551d'
 EMAIL_HOST_PASSWORD = '83e3d761a4fc08'
 EMAIL_PORT = '2525'
+
+#Django-Storages.
+DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
+DROPBOX_OAUTH2_TOKEN = '[AQUÍ VA SU TOKEN]'
+
+#Django Heroku.
+import django_heroku
+django_heroku.settings(locals())
