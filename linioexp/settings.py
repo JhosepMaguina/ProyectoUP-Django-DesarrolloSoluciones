@@ -136,7 +136,7 @@ EMAIL_PORT = '2525'
 
 #Django-Storages.
 DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
-DROPBOX_OAUTH2_TOKEN = '[AQUÍ VA SU TOKEN]'
+DROPBOX_OAUTH2_TOKEN = '_2W2EF5rGrsAAAAAAAAAAdgJyfiPFTufolsOU99l0R-yW3AagO_YtHzPZ6e9K1lC'
 
 #Django Heroku.
 import django_heroku
